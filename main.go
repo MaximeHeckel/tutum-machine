@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 
+	"github.com/MaximeHeckel/tutum-machine/lib"
 	"github.com/codegangsta/cli"
 )
 
@@ -39,6 +40,7 @@ func main() {
 
 		if file != "" {
 			println("Provisioned with", file)
+			lib.ReadFile(file)
 		}
 	}
 
