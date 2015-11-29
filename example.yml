@@ -1,0 +1,7 @@
+test1:
+  - provider: "digitalocean"
+  - region: "nyc3"
+  - type: "1GB"
+  - disk: 60
+  - target_num_nodes: 2
+  - stackfile: https://stackfiles.io/registry/55e7118073aa4401004d9394

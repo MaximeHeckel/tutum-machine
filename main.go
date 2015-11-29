@@ -18,7 +18,7 @@ func main() {
 		cli.StringFlag{
 			Name:        "file",
 			Value:       "tutum-machine.yml",
-			Usage:       "Select a specific tutum-machine yaml file",
+			Usage:       "select a specific tutum-machine yaml file",
 			Destination: &file,
 		},
 	}
