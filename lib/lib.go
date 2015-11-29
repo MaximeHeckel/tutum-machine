@@ -30,9 +30,8 @@ func ReadFile(path string) {
 	if err != nil {
 		fmt.Println(err)
 	}
-	//log.Println(nodecluster)
 	for key, value := range nodecluster {
-		log.Printf("Processing cluster %s", key)
+		fmt.Printf("==> Processing cluster %s", key)
 		sendNodeClusterAPIRequest(key, value)
 	}
 }
@@ -58,7 +57,6 @@ func sendNodeClusterAPIRequest(name string, nodecluster tools.NodeFile) {
 		for {
 			nodeclusters, _ := tutum.ListNodeClusters()
 			for _, cluster := range nodeclusters.Objects {
-				log.Println(cluster)
 				if cluster.Name == name && cluster.State == "Deployed" {
 					break Loop
 				} else {
