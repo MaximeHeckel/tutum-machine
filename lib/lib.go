@@ -4,19 +4,13 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"log"
 	"os"
+	"time"
 
-	"github.com/ghodss/yaml"
+	"github.com/MaximeHeckel/tutum-machine/tools"
+	"github.com/tutumcloud/go-tutum/tutum"
 )
-
-type File struct {
-	Provider         string `json:"provider"` // Affects YAML field names too.
-	Region           string `json:"region"`
-	Type             string `json:"type"`
-	Disk             int    `json:"disk"`
-	Target_num_nodes int    `json:"target_num_nodes"`
-	Stackfile        string `json:"stackfile"`
-}
 
 func ReadFile(path string) {
 	buf := bytes.NewBuffer(nil)
@@ -27,18 +21,64 @@ func ReadFile(path string) {
 
 	io.Copy(buf, f)
 	defer f.Close()
-	parsefile(buf.Bytes())
-}
-
-func parsefile(y []byte) {
-	file, err := yaml.YAMLToJSON(y)
+	file, err := tools.Parsefile(buf.Bytes())
 	if err != nil {
-		fmt.Printf("err: %v\n", err)
-		return
+		fmt.Println(err)
 	}
-	fmt.Println(string(file))
+
+	nodecluster, err := tools.ConvertToStruct(file)
+	if err != nil {
+		fmt.Println(err)
+	}
+	//log.Println(nodecluster)
+	for key, value := range nodecluster {
+		log.Printf("Processing cluster %s", key)
+		sendNodeClusterAPIRequest(key, value)
+	}
 }
 
-func sendAPIRequest() {
+func sendNodeClusterAPIRequest(name string, nodecluster tools.NodeFile) {
+	newCluster := tutum.NodeCreateRequest{Name: name,
+		Region:           "/api/v1/region/" + nodecluster.Provider + "/" + nodecluster.Region + "/",
+		NodeType:         "/api/v1/nodetype/" + nodecluster.Provider + "/" + nodecluster.Type + "/",
+		Target_num_nodes: nodecluster.Target_num_nodes,
+		Tags:             []tutum.NodeTag{{Name: name}},
+		Disk:             nodecluster.Disk}
+
+	cluster, err := tutum.CreateNodeCluster(newCluster)
+
+	if err != nil {
+		log.Println(err)
+	}
+
+	err = cluster.Deploy()
+
+	if err == nil {
+	Loop:
+		for {
+			nodeclusters, _ := tutum.ListNodeClusters()
+			for _, cluster := range nodeclusters.Objects {
+				log.Println(cluster)
+				if cluster.Name == name && cluster.State == "Deployed" {
+					break Loop
+				} else {
+					time.Sleep(30 * time.Second)
+				}
+			}
+		}
+		fmt.Printf("Cluster %s launched!\n", name)
+		fmt.Printf("Processing Stackfile %s", nodecluster.Stackfile)
+	}
+}
+
+func fetchStackfile() {
+
+}
+
+func processStackfile() {
+
+}
+
+func launchStackfile() {
 
 }
